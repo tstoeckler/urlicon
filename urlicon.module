@@ -23,8 +23,12 @@ function urlicon_help($section) {
   }
 }
 
-function urlicon_menu($may_cache) {
-  if (file_exists(UC_FILE_PATH.'/ui_'.check_plain(arg(1)).'.css')) drupal_set_html_head('<link rel="stylesheet" type="text/css" href="'.base_path().UC_FILE_PATH.'/ui_'.check_plain(arg(1)).'.css" />');
+function urlicon_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  switch ($op) {
+    case 'view':
+      if (file_exists(UC_FILE_PATH.'/ui_'.$node->nid.'.css')) drupal_set_html_head('<link rel="stylesheet" type="text/css" href="'.base_path().UC_FILE_PATH.'/ui_'.$node->nid.'.css" />');
+      break;
+  }
 }
 
 function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
@@ -45,8 +49,10 @@ function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
       $text = preg_replace_callback('/<a(.+?)href=\"(.+?)(\")(.+?)?[^>]*>(.+?)<\/a>/i','urlicon_replace', $text);
       
       //save css file
-      file_save_data($uc_style, $dir.'/ui_'.check_plain(arg(1)).'.css', FILE_EXISTS_REPLACE);
-      if (file_exists(UC_FILE_PATH.'/ui_'.check_plain(arg(1)).'.css')) drupal_set_html_head('<link rel="stylesheet" type="text/css" href="'.base_path().UC_FILE_PATH.'/ui_'.check_plain(arg(1)).'.css" />');
+      $nid = arg(1);
+      if (!empty($nid)) file_save_data($uc_style, $dir.'/ui_'.check_plain(arg(1)).'.css', FILE_EXISTS_REPLACE);
+      drupal_set_message(arg(1));
+//       if (file_exists(UC_FILE_PATH.'/ui_'.check_plain(arg(1)).'.css')) drupal_set_html_head('<link rel="stylesheet" type="text/css" href="'.base_path().UC_FILE_PATH.'/ui_'.check_plain(arg(1)).'.css" />');
       
       return $text;
     
