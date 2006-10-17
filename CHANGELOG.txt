@@ -1,0 +1,9 @@
+CHANGELOG
+---------
+
+urlicon.module - October, 17th 2006
+--------------------------------------
+- initial release.
+
+Comments and suggestions to
+Stefan Auditor <stefan.auditor@erdfisch.de>

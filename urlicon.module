@@ -1,0 +1,85 @@
+<?php
+// $Id$
+
+// Define path
+define('UC_FILE_PATH', file_directory_path().'/urlicon');
+
+function urlicon_help($section) {
+  switch ($section) {
+    case 'admin/help#urlicon':
+      $output = '<p>'. t('The URLIcon module automatically adds CSS-classes to &lt;a&gt;-elements according to their target.') .'</p>';
+      $output .= t('<p>Use Input Formats to enable the URL filter</p>
+<ol>
+<li>Select an existing Input Format or add a new one</li>
+<li>Configure the Input Format</li>
+<li>Enable URL class filter and Save configuration</li>
+<li>Rearrange the weight of the URL filter depending on what filters exist in the format</li>
+</ol>');
+      $output .= t('<p>You can</p>
+      <ul><li>enable the urlfilter in an input format from <a href="%admin-filters">administer &gt;&gt; Input Filter</a>.</li></ul>', array('%admin-filters' => url('admin/filters')));
+      return $output;
+    case 'admin/modules#description':
+      return t('Automatically fetch favicons for URLs.');
+  }
+}
+
+function urlicon_menu($may_cache) {
+  if (file_exists(UC_FILE_PATH.'/ui_'.check_plain(arg(1)).'.css')) drupal_set_html_head('<link rel="stylesheet" type="text/css" href="'.base_path().UC_FILE_PATH.'/ui_'.check_plain(arg(1)).'.css" />');
+}
+
+function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
+  switch ($op) {
+    case 'list':
+      return array(0 => t('URLIcon filter'));
+    
+    case 'description':
+      return t('Adds favicons to URLs.');
+    
+    case 'process':
+      global $uc_style;
+      
+      // check for directory
+      $dir = UC_FILE_PATH;
+      file_check_directory($dir, 1);
+      
+      $text = preg_replace_callback('/<a(.+?)href=\"(.+?)(\")(.+?)?[^>]*>(.+?)<\/a>/i','urlicon_replace', $text);
+      
+      //save css file
+      file_save_data($uc_style, $dir.'/ui_'.check_plain(arg(1)).'.css', FILE_EXISTS_REPLACE);
+      if (file_exists(UC_FILE_PATH.'/ui_'.check_plain(arg(1)).'.css')) drupal_set_html_head('<link rel="stylesheet" type="text/css" href="'.base_path().UC_FILE_PATH.'/ui_'.check_plain(arg(1)).'.css" />');
+      
+      return $text;
+    
+    default:
+      return $text;
+  }
+}
+
+function urlicon_replace($match) {
+  global $uc_style;
+  $dir = UC_FILE_PATH;
+  
+  $url = parse_url($match[2]);
+  $domain = explode('.', $url['host']);
+  $domain = $domain[(count($domain)-2)];
+  
+  //check for favicon on remote site
+  $data = drupal_http_request(check_plain('http://'.$url['host'].'/favicon.ico'));
+  
+  //check if favicon exists locally
+  if (!file_exists($dir.'/'.$domain.'.ico')) {
+  
+    //if favicon was found save it
+    if ($data->headers['Content-Type'] == 'image/x-icon') {
+      //save favicon to file
+      file_save_data($data->data, $dir.'/'.$domain.'.ico', FILE_EXISTS_REPLACE);
+    }
+  }
+  
+  if (stristr($match[0], 'class')) $match[0] = str_replace('class="', 'class="ui-'.check_plain($domain).' ', $match[0]);
+  else $match[0] = str_replace('">', '" class="ui-'.check_plain($domain).'">', $match[0]);
+  
+  $uc_style .= ".ui-".check_plain($domain)." {background: url(".base_path().$dir."/".check_plain($domain).".ico) no-repeat;padding-left:1.5em;}\n";
+  
+  return $match[0];
+}
