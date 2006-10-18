@@ -26,7 +26,7 @@ function urlicon_help($section) {
 function urlicon_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   switch ($op) {
     case 'view':
-      if (file_exists(UC_FILE_PATH.'/ui_'.$node->nid.'.css')) drupal_set_html_head('<link rel="stylesheet" type="text/css" href="'.base_path().UC_FILE_PATH.'/ui_'.$node->nid.'.css" />');
+      if (file_exists(UC_FILE_PATH.'/nid_'.$node->nid.'.css')) drupal_set_html_head('<link rel="stylesheet" type="text/css" href="'.base_path().UC_FILE_PATH.'/nid_'.$node->nid.'.css" />');
       break;
   }
 }
@@ -40,19 +40,24 @@ function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
       return t('Adds favicons to URLs.');
     
     case 'process':
-      global $uc_style;
+      global $ui_style;
+      $ui_style = array();
       
       // check for directory
       $dir = UC_FILE_PATH;
       file_check_directory($dir, 1);
       
-      $text = preg_replace_callback('/<a(.+?)href=\"(.+?)(\")(.+?)?[^>]*>(.+?)<\/a>/i','urlicon_replace', $text);
+      $text = preg_replace_callback('/<a.+?href=\"(.+?)\"[^>]*>(.+?)<\/a>/i','urlicon_replace', $text);
       
       //save css file
       $nid = arg(1);
-      if (!empty($nid)) file_save_data($uc_style, $dir.'/ui_'.check_plain(arg(1)).'.css', FILE_EXISTS_REPLACE);
-      drupal_set_message(arg(1));
-//       if (file_exists(UC_FILE_PATH.'/ui_'.check_plain(arg(1)).'.css')) drupal_set_html_head('<link rel="stylesheet" type="text/css" href="'.base_path().UC_FILE_PATH.'/ui_'.check_plain(arg(1)).'.css" />');
+      if (!empty($nid) AND count($ui_style) > 0) {
+        $ui_style = array_unique($ui_style);
+        foreach ($ui_style as $key => $value) {
+          $file .= $value."\n";
+        }
+        file_save_data($file, $dir.'/nid_'.check_plain(arg(1)).'.css', FILE_EXISTS_REPLACE);
+      }
       
       return $text;
     
@@ -62,30 +67,41 @@ function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
 }
 
 function urlicon_replace($match) {
-  global $uc_style;
+  global $ui_style;
   $dir = UC_FILE_PATH;
   
-  $url = parse_url($match[2]);
+  $url = @parse_url($match[1]);
   $domain = explode('.', $url['host']);
   $domain = $domain[(count($domain)-2)];
   
-  //check for favicon on remote site
-  $data = drupal_http_request(check_plain('http://'.$url['host'].'/favicon.ico'));
-  
   //check if favicon exists locally
-  if (!file_exists($dir.'/'.$domain.'.ico')) {
+  if ($url['host'] AND !file_exists($dir.'/'.$domain.'.ico')) {
   
-    //if favicon was found save it
-    if ($data->headers['Content-Type'] == 'image/x-icon') {
-      //save favicon to file
-      file_save_data($data->data, $dir.'/'.$domain.'.ico', FILE_EXISTS_REPLACE);
+    //check for favicon on remote site
+    $data = drupal_http_request(check_plain('http://'.$url['host'].'/favicon.ico'));
+    
+    // First verify if the favicon was returned
+    if (($data->code == '200' OR $data->redirect_code == '200') AND ($data->headers['Content-Length'] > 0 OR $data->headers['Content-length'] > 0)) {
+    
+      // Added text for text/plain Content-Type as that was returned from a test of www.nytimes.com
+      if (($data->headers['Content-Type'] == 'image/x-icon' OR $data->headers['Content-Type'] == 'text/plain') OR ($data->headers['Content-type'] == 'image/x-icon' OR $data->headers['Content-type'] == 'text/plain')) {
+        //save favicon to file
+        file_save_data($data->data, $dir.'/'.$domain.'.ico', FILE_EXISTS_REPLACE);
+      }
+      
     }
+    
   }
   
-  if (stristr($match[0], 'class')) $match[0] = str_replace('class="', 'class="ui-'.check_plain($domain).' ', $match[0]);
-  else $match[0] = str_replace('">', '" class="ui-'.check_plain($domain).'">', $match[0]);
-  
-  $uc_style .= ".ui-".check_plain($domain)." {background: url(".base_path().$dir."/".check_plain($domain).".ico) no-repeat;padding-left:1.5em;}\n";
+  //add CSS stuff only if favicon is availlable
+  if (file_exists($dir.'/'.$domain.'.ico')) {
+    if (stristr($match[0], 'class')) {
+      $match[0] = str_replace('class="', 'class="ui-'.check_plain($domain).' ', $match[0]);
+    } else {
+      $match[0] = str_replace('">', '" class="ui-'.check_plain($domain).'">', $match[0]);
+    }
+    $ui_style[] = ".ui-".check_plain($domain)." {background: url(".base_path().$dir."/".check_plain($domain).".ico) no-repeat;padding-left:1.5em;}";
+  }
   
   return $match[0];
 }

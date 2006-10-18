@@ -1,5 +1,10 @@
-CHANGELOG
+vCHANGELOG
 ---------
+
+urlicon.module - October, 19th 2006
+--------------------------------------
+- Improved performance if favicon already availlable.
+- Improved regex and added support for Content-Type: text/plain  - thanks to jaydub
 
 urlicon.module - October, 17th 2006
 --------------------------------------
