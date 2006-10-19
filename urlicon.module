@@ -47,7 +47,7 @@ function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
       $dir = UC_FILE_PATH;
       file_check_directory($dir, 1);
       
-      $text = preg_replace_callback('/<a.+?href=\"(.+?)\"[^>]*>(.+?)<\/a>/i','urlicon_replace', $text);
+      $text = preg_replace_callback('/<a.+?href=\"(http:\/\/.+?)\"[^>]*>(.+?)<\/a>/i','urlicon_replace', $text);
       
       //save css file
       $nid = arg(1);
