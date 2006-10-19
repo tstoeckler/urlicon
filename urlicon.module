@@ -49,7 +49,6 @@ function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
       
       $text = preg_replace_callback('/<a.+?href=\"(http:\/\/.+?)\"[^>]*>(.+?)<\/a>/i','urlicon_replace', $text);
       
-      //save css file
       $nid = arg(1);
       if (!empty($nid) AND count($ui_style) > 0) {
         $ui_style = array_unique($ui_style);
@@ -68,12 +67,17 @@ function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
 
 function urlicon_replace($match) {
   global $ui_style;
+  
+  // Define acceptable Content-Types
+  // Added text for text/plain Content-Type as that was returned from a test of www.nytimes.com
+  // Added text for application/octet-stream Content-Type as that was returned from a test of www.sourceforge.net
+  $ui_ctype = array('image/x-icon', 'text/plain', 'application/octet-stream');
   $dir = UC_FILE_PATH;
   
   $url = @parse_url($match[1]);
   $domain = explode('.', $url['host']);
-  $domain = $domain[(count($domain)-2)];
-  
+  $domain = check_plain(str_replace('.', '_', $url['host']));
+
   //check if favicon exists locally
   if ($url['host'] AND !file_exists($dir.'/'.$domain.'.ico')) {
   
@@ -82,9 +86,9 @@ function urlicon_replace($match) {
     
     // First verify if the favicon was returned
     if (($data->code == '200' OR $data->redirect_code == '200') AND ($data->headers['Content-Length'] > 0 OR $data->headers['Content-length'] > 0)) {
-    
-      // Added text for text/plain Content-Type as that was returned from a test of www.nytimes.com
-      if (($data->headers['Content-Type'] == 'image/x-icon' OR $data->headers['Content-Type'] == 'text/plain') OR ($data->headers['Content-type'] == 'image/x-icon' OR $data->headers['Content-type'] == 'text/plain')) {
+      
+      //check for acceptable Content-Type
+      if (in_array($data->headers['Content-Type'], $ui_ctype) OR in_array($data->headers['Content-type'], $ui_ctype)) {
         //save favicon to file
         file_save_data($data->data, $dir.'/'.$domain.'.ico', FILE_EXISTS_REPLACE);
       }
@@ -96,11 +100,11 @@ function urlicon_replace($match) {
   //add CSS stuff only if favicon is availlable
   if (file_exists($dir.'/'.$domain.'.ico')) {
     if (stristr($match[0], 'class')) {
-      $match[0] = str_replace('class="', 'class="ui-'.check_plain($domain).' ', $match[0]);
+      $match[0] = str_replace('class="', 'class="ui-'.$domain.' ', $match[0]);
     } else {
-      $match[0] = str_replace('">', '" class="ui-'.check_plain($domain).'">', $match[0]);
+      $match[0] = str_replace('">', '" class="ui-'.$domain.'">', $match[0]);
     }
-    $ui_style[] = ".ui-".check_plain($domain)." {background: url(".base_path().$dir."/".check_plain($domain).".ico) no-repeat;padding-left:1.5em;}";
+    $ui_style[] = ".ui-".$domain." {background: url(".base_path().$dir."/".$domain.".ico) no-repeat;padding-left:1.5em;}";
   }
   
   return $match[0];
