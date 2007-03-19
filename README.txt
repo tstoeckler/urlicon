@@ -10,3 +10,6 @@ erdfisch :: internetlösungen http://erdfisch.de
 
 Comments and suggestions to
 Stefan Auditor <stefan.auditor@erdfisch.de>
+
+Please report any bugs on
+http://drupal.org/project/issues/urlicon

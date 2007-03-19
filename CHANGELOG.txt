@@ -1,5 +1,9 @@
-vCHANGELOG
+CHANGELOG
 ---------
+
+urlicon.module - March, 19th 2007
+--------------------------------------
+- Update for Drupal 5 compatibility
 
 urlicon.module - October, 19th 2006
 --------------------------------------
@@ -12,3 +16,6 @@ urlicon.module - October, 17th 2006
 
 Comments and suggestions to
 Stefan Auditor <stefan.auditor@erdfisch.de>
+
+Please report any bugs on
+http://drupal.org/project/issues/urlicon

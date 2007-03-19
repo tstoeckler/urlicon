@@ -3,9 +3,9 @@ INSTALL
 
 1. Copy the urlicon.module to the Drupal modules/ directory.
 
-2. Go to administer->modules (?q=admin/modules), and enable the urlicon.module
+2. Go to administer->modules (?q=admin/build/modules), and enable the urlicon.module
 
-3. Go to administer->input formats(?q=admin/filters) and enable the filter in the desired input formats.
+3. Go to administer->input formats(?q=admin/settings/filters) and enable the filter in the desired input formats.
 
 4. Optionally rearrange the filters on the input format's 'rearrange' tab to resolve conflicts with other filters.
 
@@ -13,3 +13,6 @@ INSTALL
 
 Comments and suggestions to
 Stefan Auditor <stefan.auditor@erdfisch.de>
+
+Please report any bugs on
+http://drupal.org/project/issues/urlicon
