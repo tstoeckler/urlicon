@@ -7,16 +7,10 @@ define('UC_FILE_PATH', file_directory_path().'/urlicon');
 function urlicon_help($section) {
   switch ($section) {
     case 'admin/help#urlicon':
-      $output = '<p>'. t('The URLIcon module automatically adds CSS-classes to &lt;a&gt;-elements according to their target.') .'</p>';
-      $output .= t('<p>Use Input Formats to enable the URL filter</p>
-<ol>
-<li>Select an existing Input Format or add a new one</li>
-<li>Configure the Input Format</li>
-<li>Enable URL class filter and Save configuration</li>
-<li>Rearrange the weight of the URL filter depending on what filters exist in the format</li>
-</ol>');
-      $output .= t('<p>You can</p>
-      <ul><li>enable the urlfilter in an input format from <a href="%admin-filters">administer &gt;&gt; Input Filter</a>.</li></ul>', array('%admin-filters' => url('admin/filters')));
+      $output = '<p>'. t('The URLIcon module automatically adds a CSS class to &lt;a&gt;-elements reflecting their target and fetches the favicon from the target site.') .'</p>';
+      $output .= '<p>'. t('<p>Use Input Formats to enable the URL filter'). '</p>';
+      $output .= t('<ol><li>Select an existing Input Format or add a new one</li><li>Configure the Input Format</li><li>Enable URL class filter and Save configuration</li><li>Rearrange the weight of the URL filter depending on what filters exist in the format</li></ol>');
+      $output .= t('<p>You can enable the urlfilter for an input format from <a href="%admin-filters">administer &gt;&gt; Site Configuration &gt;&gt; Input Filter</a>.', array('%admin-filters' => url('admin/settings/filters')));
       return $output;
     case 'admin/modules#description':
       return t('Automatically fetch favicons for URLs.');
@@ -26,7 +20,7 @@ function urlicon_help($section) {
 function urlicon_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   switch ($op) {
     case 'view':
-      if (file_exists(UC_FILE_PATH.'/nid_'.$node->nid.'.css')) drupal_set_html_head('<link rel="stylesheet" type="text/css" href="'.base_path().UC_FILE_PATH.'/nid_'.$node->nid.'.css" />');
+      if (file_exists(UC_FILE_PATH.'/nid_'.$node->nid.'.css')) drupal_add_css(UC_FILE_PATH.'/nid_'.$node->nid.'.css', 'module');
       break;
   }
 }
@@ -83,6 +77,7 @@ function urlicon_replace($match) {
   
     //check for favicon on remote site
     $data = drupal_http_request(check_plain('http://'.$url['host'].'/favicon.ico'));
+    drupal_set_message(print_r($data,1));
     
     // First verify if the favicon was returned
     if (($data->code == '200' OR $data->redirect_code == '200') AND ($data->headers['Content-Length'] > 0 OR $data->headers['Content-length'] > 0)) {
@@ -104,7 +99,7 @@ function urlicon_replace($match) {
     } else {
       $match[0] = str_replace('">', '" class="ui-'.$domain.'">', $match[0]);
     }
-    $ui_style[] = ".ui-".$domain." {background: url(".base_path().$dir."/".$domain.".ico) no-repeat;padding-left:1.5em;}";
+    $ui_style[] = ".ui-".$domain." {background: url(".base_path().$dir."/".$domain.".ico) right no-repeat;padding-right:1.5em;}";
   }
   
   return $match[0];
