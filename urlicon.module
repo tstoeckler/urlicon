@@ -103,6 +103,7 @@ function urlicon_replace($match) {
     $data = drupal_http_request(check_plain('http://'. $url['host'] .'/favicon.ico'));
     
     // First verify if the favicon was returned
+    //TODO: if no favicon was found parse metatags
     if (($data->code == '200' OR $data->redirect_code == '200') AND ($data->headers['Content-Length'] > 0 OR $data->headers['Content-length'] > 0)) {
       
       //check for acceptable Content-Type
@@ -116,6 +117,7 @@ function urlicon_replace($match) {
   }
   
   //add CSS stuff only if favicon is availlable
+  //TODO: If not availlable provide default external link symbol
   if (file_exists($dir .'/'. $domain .'.ico')) {
     if (stristr($match[0], 'class')) {
       $match[0] = str_replace('class="', 'class="ui-'. $domain .' ', $match[0]);
