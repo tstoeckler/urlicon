@@ -1,6 +1,10 @@
 CHANGELOG
 ---------
 
+urlicon.module - April, 8th 2007
+--------------------------------------
+- looks for favicon in metatags
+
 urlicon.module - March, 19th 2007
 --------------------------------------
 - Update for Drupal 5 compatibility
