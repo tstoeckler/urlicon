@@ -68,9 +68,17 @@ function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
  */
 function urlicon_replace($match) {
   // Define acceptable Content-Types
-  // Added text for text/plain Content-Type as that was returned from a test of www.nytimes.com
-  // Added text for application/octet-stream Content-Type as that was returned from a test of www.sourceforge.net
-  $ui_ctype = array('image/x-icon', 'application/octet-stream', 'text/plain');
+  // see http://www.iana.org/assignments/media-types/image/vnd.microsoft.icon
+  $ui_ctype = array(
+    'application/ico',
+    'application/octet-stream',
+    'image/vnd.microsoft.icon',
+    'image/ico',
+    'image/icon',
+    'image/x-icon', 
+    'text/ico',
+    'text/plain',
+  );
   $dir = UI_FILE_PATH;
   
   $url = @parse_url($match[1]);
