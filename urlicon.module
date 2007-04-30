@@ -75,7 +75,7 @@ function urlicon_replace($match) {
     'image/vnd.microsoft.icon',
     'image/ico',
     'image/icon',
-    'image/x-icon', 
+    'image/x-icon',
     'text/ico',
     'text/plain',
   );
@@ -83,19 +83,19 @@ function urlicon_replace($match) {
   
   $url = @parse_url($match[1]);
   $domain = explode('.', $url['host']);
-  $domain = check_plain(str_replace('.', '_', $url['host']));
+  $domain = check_url(str_replace('.', '_', $url['host']));
 
   //check if favicon exists locally
   if ($url['host'] AND !file_exists($dir .'/'. $domain .'.ico')) {
   
     //check for favicon in metatags
-    $data = drupal_http_request(check_plain($match[1]));
+    $data = drupal_http_request(check_url($match[1]));
     
     if (preg_match('/<link[^>]+rel="(?:shortcut )?icon"[^>]+?href="([^"]+?)"/si', $data->data, $icons)) {
       
       if (strpos($icons[1], '://')) {
         // absolute path
-        $data = drupal_http_request(check_plain($icons[1]));
+        $data = drupal_http_request(check_url($icons[1]));
       }
       else if (substr($icons[1], 0, 3) == '../') {
         // relative path
@@ -107,22 +107,22 @@ function urlicon_replace($match) {
           $i++;
         }
         
-        $data = drupal_http_request(check_plain($url['scheme'] .'://'. $url['host'] . $path . $icons[1]));
+        $data = drupal_http_request(check_url($url['scheme'] .'://'. $url['host'] . $path . $icons[1]));
       }
       else if (substr($icons[1], 0, 1) == '/') {
         // relative path
-        $data = drupal_http_request(check_plain($url['scheme'] .'://'. $url['host'] . $icons[1]));
+        $data = drupal_http_request(check_url($url['scheme'] .'://'. $url['host'] . $icons[1]));
       }
       else {
         // get favicon from webroot
-        $data = drupal_http_request(check_plain('http://'. $url['host'] .'/favicon.ico'));
+        $data = drupal_http_request(check_url('http://'. $url['host'] .'/favicon.ico'));
         watchdog('urlicon', t('Could not find favicon for URL %url with shortcut url %shortcut, trying webroot.', array('%url' => $match[1], '%shortcut' =>$icons[1])), WATCHDOG_ERROR);
       }
       
     }
     else {
       // get favicon from webroot
-      $data = drupal_http_request(check_plain('http://'. $url['host'] .'/favicon.ico'));
+      $data = drupal_http_request(check_url('http://'. $url['host'] .'/favicon.ico'));
       watchdog('urlicon', t('Could not find favicon for URL %url in metatags, trying webroot.', array('%url' => $match[1])));
     }
     
