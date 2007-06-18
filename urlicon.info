@@ -3,4 +3,4 @@ name = "URL Icon"
 description = "Checks the content for &lt;a&gt;-elements and automatically fetches and stores the corresponding favicon.ico if available."
 ; dependencies = 
 ; package = 
-version = "$Name$"
+
