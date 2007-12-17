@@ -5,7 +5,7 @@
  * @file
  * Simple filter for Drupal.
  *
- * Checks the content for <a>-elements and automatically fetches and stores the corresponding favicon.ico if availlable.
+ * Checks the content for <a>-elements and automatically fetches and stores the corresponding favicon.ico if available.
  *
  * @author
  * Stefan Auditor <stefan.auditor@erdfisch.de>
@@ -75,7 +75,7 @@ function urlicon_replace($match) {
     'image/vnd.microsoft.icon',
     'image/ico',
     'image/icon',
-    'image/x-icon',
+    'image/x-icon', 
     'text/ico',
     'text/plain',
   );
@@ -142,14 +142,14 @@ function urlicon_replace($match) {
     
   }
   
-  // check for favicon availlability
+  // check for favicon availability
   if (file_exists($dir .'/'. $domain .'.ico')) {
-    // if availlable show it
-    $match[0] = str_replace('</a>', ' '. theme_urlicon($dir .'/'. $domain .'.ico', '', $url['host'], array('class' => 'urlicon urlicon-'. $domain)). '</a>', $match[0]);
+    // if available show it
+    $match[0] = str_replace('</a>', ' '. theme_urlicon($dir .'/'. $domain .'.ico', t('favicon'), $url['host'], array('class' => 'urlicon ui-'. $domain)). '</a>', $match[0]);
   }
   else {
-    // if not availlable provide a default icon
-    $match[0] = str_replace('</a>', ' '. theme_urlicon(drupal_get_path('module', 'urlicon') .'/favicon.ico', '', $url['host'], array('class' => 'urlicon urlicon-external')). '</a>', $match[0]);
+    // if not available provide a default icon
+    $match[0] = str_replace('</a>', ' '. theme_urlicon(drupal_get_path('module', 'urlicon') .'/favicon.ico', t('favicon'), $url['host'], array('class' => 'urlicon ui-external')). '</a>', $match[0]);
   }
   
   return $match[0];
