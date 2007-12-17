@@ -137,31 +137,20 @@ function urlicon_replace($match) {
         //save favicon to file
         file_save_data($data->data, $dir .'/'. $domain .'.ico', FILE_EXISTS_REPLACE);
       }
-      
     }
-    
   }
   
   // check for favicon availability
-  if (file_exists($dir .'/'. $domain .'.ico')) {
-    // if available show it
-    $match[0] = str_replace('</a>', ' '. theme_urlicon($dir .'/'. $domain .'.ico', t('favicon'), $url['host'], array('class' => 'urlicon ui-'. $domain)). '</a>', $match[0]);
-  }
-  else {
-    // if not available provide a default icon
-    $match[0] = str_replace('</a>', ' '. theme_urlicon(drupal_get_path('module', 'urlicon') .'/favicon.ico', t('favicon'), $url['host'], array('class' => 'urlicon ui-external')). '</a>', $match[0]);
-  }
+  $favicon = file_exists($dir .'/'. $domain .'.ico') ? ($dir .'/'. $domain .'.ico') : (drupal_get_path('module', 'urlicon') .'/favicon.ico');
   
-  return $match[0];
+  $link = theme_urlicon($match[3], $favicon, $match[1], array('alt' => '', 'title' => t('favicon'), 'class' => 'urlicon ui-'. $domain));
+  return $link;
 }
 
 /**
- * Return a themed favicon.
+ * Return a themed link with a favicon.
  */
-function theme_urlicon($path, $alt = '', $title = '', $attributes = NULL, $getsize = FALSE) {
-  if (!$getsize || (is_file($path) && (list($width, $height, $type, $image_attributes) = @getimagesize($path)))) {
-    $attributes = drupal_attributes($attributes);
-    $url = (url($path) == $path) ? $path : (base_path() . $path);
-    return '<img src="'. check_url($url) .'" alt="'. check_plain($alt) .'" title="'. check_plain($title) .'" '. $image_attributes . $attributes .' />';
-  }
+function theme_urlicon($text, $favicon, $path, $attributes = array()) {
+  $favicon = '<img src="'. $favicon .'" '. drupal_attributes($attributes) .' />';
+  return l($text .' '. $favicon, $path, array(), NULL, NULL, TRUE, TRUE);
 }
