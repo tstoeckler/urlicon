@@ -35,7 +35,7 @@ function urlicon_help($section) {
  * Implementation of hook_menu().
  */
 function urlicon_menu($may_cache) {
-  drupal_add_css(drupal_get_path('module', 'urlicon'). '/urlicon.css');
+  drupal_add_css(drupal_get_path('module', 'urlicon') .'/urlicon.css');
 }
 
 /**
@@ -116,7 +116,7 @@ function urlicon_replace($match) {
       else {
         // get favicon from webroot
         $data = drupal_http_request(check_url('http://'. $url['host'] .'/favicon.ico'));
-        watchdog('urlicon', t('Could not find favicon for URL %url with shortcut url %shortcut, trying webroot.', array('%url' => $match[1], '%shortcut' =>$icons[1])), WATCHDOG_ERROR);
+        watchdog('urlicon', t('Could not find favicon for URL %url with shortcut url %shortcut, trying webroot.', array('%url' => $match[1], '%shortcut' => $icons[1])), WATCHDOG_ERROR);
       }
       
     }
