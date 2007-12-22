@@ -2,7 +2,7 @@ README
 ------
 
 Simple filter for Drupal.
-Checks the content for <a>-elements and automatically fetches and stores the corresponding favicon.ico if available.
+Checks the content for <a>-elements and automatically fetches and stores the corresponding favicon if available.
 
 Sponsored by 
 erdfisch :: internetlösungen http://erdfisch.de
