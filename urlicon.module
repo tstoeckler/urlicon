@@ -26,15 +26,13 @@ function urlicon_help($section) {
       $output .= t('<ol><li>Select an existing Input Format or add a new one</li><li>Configure the Input Format</li><li>Enable URL class filter and Save configuration</li><li>Rearrange the weight of the URL filter depending on what filters exist in the format</li></ol>');
       $output .= t('<p>You can enable the urlfilter for an input format from <a href="%admin-filters">administer &gt;&gt; Site Configuration &gt;&gt; Input Filter</a>.', array('%admin-filters' => url('admin/settings/filters')));
       return $output;
-    case 'admin/modules#description':
-      return t('Automatically fetch favicons for URLs.');
   }
 }
 
 /**
  * Implementation of hook_menu().
  */
-function urlicon_menu($may_cache) {
+function urlicon_menu() {
   drupal_add_css(drupal_get_path('module', 'urlicon') .'/urlicon.css');
 }
 
@@ -151,6 +149,7 @@ function urlicon_replace($match) {
  * Return a themed link with a favicon.
  */
 function theme_urlicon($text, $favicon, $path, $attributes = array()) {
-  $favicon = '<img src="'. $favicon .'" '. drupal_attributes($attributes) .' />';
-  return l($text .' '. $favicon, $path, array(), NULL, NULL, TRUE, TRUE);
+  $favicon = '<img src="'. base_path().$favicon .'" '. drupal_attributes($attributes) .' />';
+  $options['html'] = TRUE;
+  return l($text .' '. $favicon, $path, $options);
 }
