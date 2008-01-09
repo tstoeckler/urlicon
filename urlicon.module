@@ -139,7 +139,7 @@ function urlicon_replace($match) {
   }
   
   // check for favicon availability
-  $favicon = file_exists($dir .'/'. $domain .'.ico') ? ($dir .'/'. $domain .'.ico') : (drupal_get_path('module', 'urlicon') .'/favicon.ico');
+  $favicon = file_exists(base_path().$dir .'/'. $domain .'.ico') ? (base_path().$dir .'/'. $domain .'.ico') : (base_path().drupal_get_path('module', 'urlicon') .'/favicon.ico');
   
   $link = theme_urlicon($match[3], $favicon, $match[1], array('alt' => '', 'title' => t('favicon'), 'class' => 'urlicon ui-'. $domain));
   return $link;
