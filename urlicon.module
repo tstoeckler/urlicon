@@ -150,6 +150,5 @@ function urlicon_replace($match) {
  */
 function theme_urlicon($text, $favicon, $path, $attributes = array()) {
   $favicon = '<img src="'. base_path().$favicon .'" '. drupal_attributes($attributes) .' />';
-  $options['html'] = TRUE;
-  return l($text .' '. $favicon, $path, $options);
+  return l($text .' '. $favicon, $path, array('html' => TRUE));
 }
