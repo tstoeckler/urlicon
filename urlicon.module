@@ -69,7 +69,10 @@ function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
 function urlicon_replace($match) {
   // Define acceptable Content-Types
   // see http://www.iana.org/assignments/media-types/image/vnd.microsoft.icon
+  // Additional Content-Types suggested by W3C
+  // see http://www.w3.org/2005/10/howto-favicon
   $ui_ctype = array(
+    // Suggested by IANA
     'application/ico',
     'application/octet-stream',
     'image/vnd.microsoft.icon',
@@ -78,6 +81,9 @@ function urlicon_replace($match) {
     'image/x-icon', 
     'text/ico',
     'text/plain',
+    // Suggested by W3C
+    'image/gif',
+    'image/png',
   );
   $dir = UI_FILE_PATH;
   
