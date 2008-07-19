@@ -18,8 +18,8 @@ define('UI_FILE_PATH', file_directory_path() .'/urlicon');
 /**
  * Implementation of hook_help().
  */
-function urlicon_help($section) {
-  switch ($section) {
+function urlicon_help($path, $arg) {
+  switch ($path) {
     case 'admin/help#urlicon':
       $output = '<p>'. t('The URLIcon module automatically adds a CSS class to &lt;a&gt;-elements reflecting their target and fetches the favicon from the target site.') .'</p>';
       $output .= '<p>'. t('<p>Use Input Formats to enable the URL filter') .'</p>';
@@ -32,9 +32,9 @@ function urlicon_help($section) {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implementation of hook_init().
  */
-function urlicon_menu($may_cache) {
+function urlicon_init() {
   drupal_add_css(drupal_get_path('module', 'urlicon') .'/urlicon.css');
 }
 
@@ -54,7 +54,7 @@ function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
       $dir = UI_FILE_PATH;
       file_check_directory($dir, 1);
       
-      $text = preg_replace_callback('/<a.+?href=\"((http|https|ftp|telnet|news|mms):\/\/.+?)\"[^>]*>(.+?)<\/a>/i', 'urlicon_replace', $text);
+      $text = preg_replace_callback('/<a.+?href=\"((http|https|ftp|telnet|news|mms):\/\/.+?)\"[^>]*>(.+?)<\/a>/i', '_urlicon_replace', $text);
       
       return $text;
     
@@ -66,7 +66,7 @@ function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
 /**
  * Callback for filter
  */
-function urlicon_replace($match) {
+function _urlicon_replace($match) {
   // Define acceptable Content-Types
   // see http://www.iana.org/assignments/media-types/image/vnd.microsoft.icon
   // Additional Content-Types suggested by W3C
@@ -147,10 +147,41 @@ function urlicon_replace($match) {
   }
   
   // check for favicon availability
-  $favicon = file_exists($dir .'/'. $domain .'.ico') ? (base_path().$dir .'/'. $domain .'.ico') : (base_path().drupal_get_path('module', 'urlicon') .'/favicon.ico');
+  $favicon = file_exists($dir .'/'. $domain .'.ico') ? (file_create_url($dir .'/'. $domain .'.ico')) : (base_path().drupal_get_path('module', 'urlicon') .'/favicon.ico');
   
   $link = theme('urlicon', $match[3], $favicon, $match[1], array('alt' => '', 'title' => t('favicon'), 'class' => 'urlicon ui-'. $domain));
   return $link;
+}
+
+/**
+ * Implementation of hook_file_download().
+ */
+function urlicon_file_download($filepath) {
+  // Check if the file is controlled by the current module.
+  if (strpos($filepath, 'urlicon') !== FALSE) {
+    if (user_access('access content')) {
+      return array('Content-type: image/ico');
+    }
+  }
+  else {
+    return -1;
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function urlicon_theme($existing, $type, $theme, $path) {
+  return array(
+    'urlicon' => array(
+      'arguments' => array(
+        'text' => NULL,
+        'favicon' => NULL,
+        'path' => NULL,
+        'attributes' => array(),
+      ),
+    ),
+  );
 }
 
 /**
@@ -158,5 +189,5 @@ function urlicon_replace($match) {
  */
 function theme_urlicon($text, $favicon, $path, $attributes = array()) {
   $favicon = '<img src="'. $favicon .'" '. drupal_attributes($attributes) .' />';
-  return l($text .' '. $favicon, $path, array(), NULL, NULL, TRUE, TRUE);
+  return l($text .' '. $favicon, $path, array('absolute' => TRUE, 'html' => TRUE));
 }
