@@ -1,4 +1,4 @@
 ; $Id$
 name = "URL Icon"
-description = "Checks the content for &lt;a&gt;-elements and automatically fetches and stores the corresponding favicon if available."
+description = "Filter all external links in nodes and comments."
 core = 6.x

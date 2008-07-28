@@ -1,14 +1,26 @@
-README
-------
+// $Id$
 
-Simple filter for Drupal.
-Checks the content for <a>-elements and automatically fetches and stores the corresponding favicon if available.
+URL Icon
+--------
+
+Filter all external links in nodes and comments.
+
+You may choose to
+ * automatically add the corresponding favicon, if the site has one
+ * add an external link icon (included)
+ * add a CSS class only, so that you can theme it as you like
+
 
 Sponsored by 
-erdfisch :: internetlösungen http://erdfisch.de
+erdfisch http://erdfisch.de
 
 Comments and suggestions to
 Stefan Auditor <stefan.auditor@erdfisch.de>
 
 Please report any bugs on
 http://drupal.org/project/issues/urlicon
+
+Credits
+The external link icon has been taken from Wikimedia Commons [1] and is licensed under GPL.
+
+[1]http://commons.wikimedia.org/wiki/Image:Icon_External_Link.png

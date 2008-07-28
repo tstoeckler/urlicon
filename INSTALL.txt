@@ -1,15 +1,24 @@
-INSTALL
--------
+// $Id$
+
+URL Icon
+--------
 
 1. Copy the urlicon.module to the Drupal modules/ directory.
 
-2. Go to Administer->Site building->Modules (?q=admin/build/modules), and enable the urlicon.module
+2. Go to Administer->Site building->Modules (?q=admin/build/modules), and enable
+   the urlicon.module
 
-3. Go to Administer->Site configuration->Input formats(?q=admin/settings/filters) and enable the filter in the desired input formats.
+3. Go to Administer->Site configuration->Input formats(?q=admin/settings/filters)
+   and enable the filter in the desired input formats.
 
-4. Optionally rearrange the filters on the input format's 'rearrange' tab to resolve conflicts with other filters.
+4. You may change the settings on the input format's 'Configure' tab according 
+   to your needs
 
-5. You may manually overwrite favicons, by placing new icons in your files/urlicon directory
+5. You may rearrange the filters on the input format's 'Rearrange' tab to 
+   resolve conflicts with other filters.
+
+6. You may manually overwrite favicons, by placing new icons in your 
+   files/urlicon directory
 
 Comments and suggestions to
 Stefan Auditor <stefan.auditor@erdfisch.de>
