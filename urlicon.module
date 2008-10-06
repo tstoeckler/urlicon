@@ -25,9 +25,9 @@ function urlicon_help($path, $arg) {
   switch ($path) {
     case 'admin/help#urlicon':
       $output = '<p>'. t('The URLIcon module automatically adds a CSS class to &lt;a&gt;-elements reflecting their target and fetches the favicon from the target site.') .'</p>';
-      $output .= '<p>'. t('<p>Use Input Formats to enable the URL filter') .'</p>';
-      $output .= t('<ol><li>Select an existing Input Format or add a new one</li><li>Configure the Input Format</li><li>Enable URL class filter and Save configuration</li><li>Rearrange the weight of the URL filter depending on what filters exist in the format</li></ol>');
-      $output .= t('<p>You can enable the urlfilter for an input format from <a href="%admin-filters">administer &gt;&gt; Site Configuration &gt;&gt; Input Filter</a>.', array('%admin-filters' => url('admin/settings/filters')));
+      $output .= '<p>'. t('Use Input Formats to enable the URL filter') .'</p>';
+      $output .= '<p>'. t('<ol><li>Select an existing Input Format or add a new one</li><li>Configure the Input Format</li><li>Enable URL class filter and Save configuration</li><li>Rearrange the weight of the URL filter depending on what filters exist in the format</li></ol>') .'</p>';
+      $output .= '<p>'. t('You can enable the urlfilter for an input format from <a href="%admin-filters">administer &gt;&gt; Site Configuration &gt;&gt; Input Filter</a>.', array('%admin-filters' => url('admin/settings/filters'))) .'</p>';
       return $output;
     case 'admin/modules#description':
       return t('Automatically fetch favicons for URLs.');
@@ -198,7 +198,7 @@ function _urlicon_format_favicon($match) {
   }
   
   // check for favicon availability
-  $favicon = file_exists($dir .'/'. $domain .'.ico') ? (file_create_url($dir .'/'. $domain .'.ico')) : (base_path().drupal_get_path('module', 'urlicon') .'/favicon.ico');
+  $favicon = file_exists($dir .'/'. $domain .'.ico') ? (file_create_url($dir .'/'. $domain .'.ico')) : (base_path().drupal_get_path('module', 'urlicon') .'/Icon_External_Link.png');
   
   $link = theme('urlicon', $match[3], $favicon, $match[1], array('alt' => '', 'title' => t('favicon'), 'class' => 'urlicon urlicon-'. check_plain($domain)));
   return $link;
