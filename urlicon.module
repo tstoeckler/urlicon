@@ -13,7 +13,7 @@
  */
 
 // Path to directory where favicons are stored
-define('UI_FILE_PATH', file_directory_path() .'/urlicon');
+define('UI_FILE_PATH', 'public://urlicon');
 define('UI_FORMAT_FAVICON', 0);
 define('UI_FORMAT_ICON', 1);
 define('UI_FORMAT_CLASS', 2);
@@ -27,7 +27,7 @@ function urlicon_help($path, $arg) {
       $output = '<p>'. t('The URLIcon module automatically adds a CSS class to &lt;a&gt;-elements reflecting their target and fetches the favicon from the target site.') .'</p>';
       $output .= '<p>'. t('Use Input Formats to enable the URL filter') .'</p>';
       $output .= '<p>'. t('<ol><li>Select an existing Input Format or add a new one</li><li>Configure the Input Format</li><li>Enable URL class filter and Save configuration</li><li>Rearrange the weight of the URL filter depending on what filters exist in the format</li></ol>') .'</p>';
-      $output .= '<p>'. t('You can enable the urlfilter for an input format from <a href="%admin-filters">administer &gt;&gt; Site Configuration &gt;&gt; Input Filter</a>.', array('%admin-filters' => url('admin/settings/filters'))) .'</p>';
+      $output .= '<p>'. t('You can enable the urlfilter for an input format from <a href="%admin-filter">administer &gt;&gt; Site Configuration &gt;&gt; Input Filter</a>.', array('%admin-filter' => url('admin/config/content/formats'))) .'</p>';
       return $output;
     case 'admin/modules#description':
       return t('Automatically fetch favicons for URLs.');
@@ -42,45 +42,46 @@ function urlicon_init() {
 }
 
 /**
- * Implementation of hook_filter().
+ * Implements of hook_filter_info().
  */
-function urlicon_filter($op, $delta = 0, $format = -1, $text = '') {
-  switch ($op) {
-    case 'list':
-      return array(0 => t('URL Icon filter'));
-    
-    case 'description':
-      return t('Adds favicons to URLs.');
+function urlicon_filter_info() {
+  $filters['url_icon'] = array(
+    'title' => t('URL Icon filter'),
+    'description' => t('Adds favicons to URLs.'),
+    'process callback' => 'urlicon_filter_icons',
+    'settings callback' => 'urlicon_settings',
+    'default settings' => array(
+      'url_icon' => UI_FORMAT_FAVICON,
+    ),
+  );
+
+  return $filters;
+}
+
+/**
+ * Add url icons to a certain text.
+ */
+function urlicon_filter_icons($text, $format) {
+  // check for directory
+  $dir = UI_FILE_PATH;
+  file_prepare_directory($dir, FILE_CREATE_DIRECTORY);
+
+  $reg_exp = '/<a.+?href=\"((http|https|ftp|telnet|news|mms):\/\/.+?)\"[^>]*>(.+?)<\/a>/i';
+
+  $ui_format = $format->settings['urlicon'];
+  switch ($ui_format) {
+    case UI_FORMAT_FAVICON:
+      $text = preg_replace_callback($reg_exp, '_urlicon_format_favicon', $text);
       break;
-    case 'process':
-      // check for directory
-      $dir = UI_FILE_PATH;
-      file_check_directory($dir, 1);
-      
-      $reg_exp = '/<a.+?href=\"((http|https|ftp|telnet|news|mms):\/\/.+?)\"[^>]*>(.+?)<\/a>/i';
-      
-      $ui_format = variable_get("filter_urlicon_$format", UI_FORMAT_FAVICON);
-      switch ($ui_format) {
-        case UI_FORMAT_FAVICON:
-          $text = preg_replace_callback($reg_exp, '_urlicon_format_favicon', $text);
-          break;
-        case UI_FORMAT_ICON:
-          $text = preg_replace_callback($reg_exp, '_urlicon_format_icon', $text);
-          break;
-        case UI_FORMAT_CLASS:
-          $text = preg_replace_callback($reg_exp, '_urlicon_format_class', $text);
-          break;
-      }
-      
-      return $text;
+    case UI_FORMAT_ICON:
+      $text = preg_replace_callback($reg_exp, '_urlicon_format_icon', $text);
       break;
-    case 'settings':
-      return urlicon_settings($format);
-      break;
-    default:
-      return $text;
+    case UI_FORMAT_CLASS:
+      $text = preg_replace_callback($reg_exp, '_urlicon_format_class', $text);
       break;
   }
+
+  return $text;
 }
 
 /**
@@ -110,7 +111,12 @@ function _urlicon_format_icon($match) {
   // check for favicon availability
   $favicon = base_path() . drupal_get_path('module', 'urlicon') .'/Icon_External_Link.png';
   
-  $link = theme('urlicon', $match[3], $favicon, $match[1], array('alt' => '', 'title' => t('favicon'), 'class' => 'urlicon urlicon-'. check_plain($domain)));
+  $link = theme('urlicon', array(
+    'text' => $match[3],
+    'favicon' => $favicon,
+    'path' => $match[1],
+    'attributes' => array('alt' => '', 'title' => t('favicon'), 'class' => array('urlicon',  'urlicon-'. check_plain($domain))),
+  ));
   return $link;
 }
 
@@ -188,7 +194,7 @@ function _urlicon_format_favicon($match) {
       //check for acceptable Content-Type
       //TODO: refactor code
       $content_type_1 = explode(';', $data->headers['Content-Type']);
-      $content_type_2 = explode(';', $data->headers['Content-type']);
+      $content_type_2 = explode(';', $data->headers['Content-Type']);
       
       if (in_array($content_type_1[0], $ui_ctype) OR in_array($content_type_2[0], $ui_ctype)) {
         //save favicon to file
@@ -199,8 +205,13 @@ function _urlicon_format_favicon($match) {
   
   // check for favicon availability
   $favicon = file_exists($dir .'/'. $domain .'.ico') ? (file_create_url($dir .'/'. $domain .'.ico')) : (base_path().drupal_get_path('module', 'urlicon') .'/Icon_External_Link.png');
-  
-  $link = theme('urlicon', $match[3], $favicon, $match[1], array('alt' => '', 'title' => t('favicon'), 'class' => 'urlicon urlicon-'. check_plain($domain)));
+
+  $link = theme('urlicon', array(
+    'text' => $match[3],
+    'favicon' => $favicon,
+    'path' => $match[1],
+    'attributes' => array('alt' => '', 'title' => t('favicon'), 'class' => array('urlicon', 'urlicon-'. check_plain($domain))),
+  ));
   return $link;
 }
 
@@ -223,16 +234,12 @@ function urlicon_file_download($filepath) {
 /**
  * Settings form
  */
-function urlicon_settings($format) {
-  $form['urlicon'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('URL Icon'),
-    '#collapsible' => TRUE,
-  );
-  $form['urlicon']["filter_urlicon_$format"] = array(
+function urlicon_settings($form, &$form_state, $filter, $format, $defaults) {
+  $format_id = $format->format;
+  $settings["urlicon"] = array(
     '#type' => 'radios',
     '#title' => t('Filter URLs'),
-    '#default_value' => variable_get("filter_urlicon_$format", UI_FORMAT_FAVICON),
+    '#default_value' => isset($filter->settings['urlicon']) ? $filter->settings['urlicon'] : $defaults['urlicon'],
     '#options' => array(
       UI_FORMAT_FAVICON => t('Find all external URLs and append the according favicon (if available)'),
       UI_FORMAT_ICON    => t('Find all external URLs and append an <em>external link icon</em>'),
@@ -240,19 +247,8 @@ function urlicon_settings($format) {
     ),
     '#description' => t('Choose what to add to a link in the markup.'),
   );
-  $form['urlicon']["filter_urlicon_$format"] = array(
-    '#type' => 'radios',
-    '#title' => t('Filter URLs'),
-    '#default_value' => variable_get("filter_urlicon_$format", UI_FORMAT_FAVICON),
-    '#options' => array(
-      UI_FORMAT_FAVICON => t('Find all external URLs and append the according favicon (if available)'),
-      UI_FORMAT_ICON    => t('Find all external URLs and append an <em>external link icon</em>'),
-      UI_FORMAT_CLASS   => t('Find all external URLs and add a CSS class only (theme it as you like)'),
-    ),
-    '#description' => t('Choose what to add to a link in the markup.'),
-  );
-  
-  return $form;
+
+  return $settings;
 }
 
 /**
@@ -274,7 +270,12 @@ function urlicon_theme($existing, $type, $theme, $path) {
 /**
  * Return a themed link with a favicon.
  */
-function theme_urlicon($text, $favicon, $path, $attributes = array()) {
+function theme_urlicon($variables) {
+  $hooks = theme_get_registry();
+  foreach ($hooks['urlicon']['arguments'] as $key => $default) {
+    $$key = $variables[$key];
+  }
   $favicon = '<img src="'. $favicon .'" '. drupal_attributes($attributes) .' />';
-  return l($text .' '. $favicon, $path, array('absolute' => TRUE, 'html' => TRUE));
+  $output = l($text .' '. $favicon, $path, array('absolute' => TRUE, 'html' => TRUE));
+  return  $output;
 }
