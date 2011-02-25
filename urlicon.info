@@ -1,4 +1,3 @@
-; $Id$
 name = "URL Icon"
 description = "Filter all external links in nodes and comments."
 core = 7.x
