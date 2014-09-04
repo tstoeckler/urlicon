@@ -1,0 +1,4 @@
+name: "URL Icon"
+description:  "Filter all external links in nodes and comments."
+type: module
+core: 8.x

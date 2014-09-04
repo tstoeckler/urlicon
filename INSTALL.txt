@@ -4,10 +4,10 @@ URL Icon
 
 1. Copy the urlicon.module to the Drupal modules/ directory.
 
-2. Go to Administer->Site building->Modules (?q=admin/build/modules), and enable
+2. Go to Administer->Site building->Modules (?q=admin/modules), and enable
    the urlicon.module
 
-3. Go to Administer->Site configuration->Input formats(?q=admin/settings/filters)
+3. Go to Administer->Site configuration->Input formats(?q=admin/config/content/formats)
    and enable the filter in the desired input formats.
 
 4. You may change the settings on the input format's 'Configure' tab according 
