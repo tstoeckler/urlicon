@@ -1,0 +1,6 @@
+services:
+  logger.channel.urlicon:
+    class: Drupal\Core\Logger\LoggerChannel
+    factory_method: get
+    factory_service: logger.factory
+    arguments: ['system']

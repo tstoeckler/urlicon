@@ -12,6 +12,8 @@
  */
 
 // Path to directory where favicons are stored
+use Drupal\Core\Template\Attribute;
+
 define('UI_FILE_PATH', 'public://urlicon');
 define('UI_FORMAT_FAVICON', 0);
 define('UI_FORMAT_ICON', 1);
@@ -41,180 +43,6 @@ function urlicon_init() {
 }
 
 /**
- * Implements of hook_filter_info().
- */
-function urlicon_filter_info() {
-  $filters['url_icon'] = array(
-    'title' => t('URL Icon filter'),
-    'description' => t('Adds favicons to URLs.'),
-    'process callback' => 'urlicon_filter_icons',
-    'settings callback' => 'urlicon_settings',
-    'default settings' => array(
-      'url_icon' => UI_FORMAT_FAVICON,
-    ),
-  );
-
-  return $filters;
-}
-
-/**
- * Add url icons to a certain text.
- */
-function urlicon_filter_icons($text, $format) {
-  // check for directory
-  $dir = UI_FILE_PATH;
-  file_prepare_directory($dir, FILE_CREATE_DIRECTORY);
-
-  $reg_exp = '/<a.+?href=\"((http|https|ftp|telnet|news|mms):\/\/.+?)\"[^>]*>(.+?)<\/a>/i';
-
-  $ui_format = $format->settings['urlicon'];
-  switch ($ui_format) {
-    case UI_FORMAT_FAVICON:
-      $text = preg_replace_callback($reg_exp, '_urlicon_format_favicon', $text);
-      break;
-    case UI_FORMAT_ICON:
-      $text = preg_replace_callback($reg_exp, '_urlicon_format_icon', $text);
-      break;
-    case UI_FORMAT_CLASS:
-      $text = preg_replace_callback($reg_exp, '_urlicon_format_class', $text);
-      break;
-  }
-
-  return $text;
-}
-
-/**
- * Callback for filter
- */
-function _urlicon_format_class($match) {
-  $url = parse_url($match[1]);
-  $domain = explode('.', $url['host']);
-  $domain = $domain[(count($domain)-2)];
-  
-  if (stristr($match[0], 'class')) $match[0] = str_replace('class="', 'class="uc-'. check_plain($domain) .' ', $match[0]);
-  else $match[0] = str_replace('">', '" class="urlicon urlicon-'. check_plain($domain) .'">', $match[0]);
-  
-  return $match[0];
-}
-
-/**
- * Callback for filter
- */
-function _urlicon_format_icon($match) {
-  $dir = UI_FILE_PATH;
-  
-  $url = @parse_url($match[1]);
-  $domain = explode('.', $url['host']);
-  $domain = check_url(str_replace('.', '_', $url['host']));
-
-  // check for favicon availability
-  $favicon = base_path() . drupal_get_path('module', 'urlicon') .'/Icon_External_Link.png';
-  
-  $link = theme('urlicon', array(
-    'text' => $match[3],
-    'favicon' => $favicon,
-    'path' => $match[1],
-    'attributes' => array('alt' => '', 'title' => t('favicon'), 'class' => array('urlicon',  'urlicon-'. check_plain($domain))),
-  ));
-  return $link;
-}
-
-/**
- * Callback for filter
- */
-function _urlicon_format_favicon($match) {
-  // Define acceptable Content-Types
-  // see http://www.iana.org/assignments/media-types/image/vnd.microsoft.icon
-  // Additional Content-Types suggested by W3C
-  // see http://www.w3.org/2005/10/howto-favicon
-  $ui_ctype = array(
-    // Suggested by IANA
-    'application/ico',
-    'application/octet-stream',
-    'image/vnd.microsoft.icon',
-    'image/ico',
-    'image/icon',
-    'image/x-icon', 
-    'text/ico',
-    'text/plain',
-    // Suggested by W3C
-    'image/gif',
-    'image/png',
-  );
-  $dir = UI_FILE_PATH;
-  
-  $url = @parse_url($match[1]);
-  $domain = explode('.', $url['host']);
-  $domain = check_url(str_replace('.', '_', $url['host']));
-
-  //check if favicon exists locally
-  if ($url['host'] AND !file_exists($dir .'/'. $domain .'.ico')) {
-  
-    //check for favicon in metatags
-    $data = drupal_http_request(check_url($match[1]));
-    
-    if (preg_match('/<link[^>]+rel="(?:shortcut )?icon"[^>]+?href="([^"]+?)"/si', $data->data, $icons)) {
-      
-      if (strpos($icons[1], '://')) {
-        // absolute path
-        $data = drupal_http_request(check_url($icons[1]));
-      }
-      else if (substr($icons[1], 0, 3) == '../') {
-        // relative path
-        $path = '';
-        $elements = explode('/', $url['path']);
-        $i = 0;
-        while (!strpos($elements[$i], '.') AND $i <= count($elements)) {
-          $path .= $elements[$i] .'/';
-          $i++;
-        }
-        
-        $data = drupal_http_request(check_url($url['scheme'] .'://'. $url['host'] . $path . $icons[1]));
-      }
-      else if (substr($icons[1], 0, 1) == '/') {
-        // relative path
-        $data = drupal_http_request(check_url($url['scheme'] .'://'. $url['host'] . $icons[1]));
-      }
-      else {
-        // get favicon from webroot
-        $data = drupal_http_request(check_url('http://'. $url['host'] .'/favicon.ico'));
-        watchdog('urlicon', t('Could not find favicon for URL %url with shortcut url %shortcut, trying webroot.', array('%url' => $match[1], '%shortcut' => $icons[1])), WATCHDOG_ERROR);
-      }
-      
-    }
-    else {
-      // get favicon from webroot
-      $data = drupal_http_request(check_url('http://'. $url['host'] .'/favicon.ico'));
-      watchdog('urlicon', t('Could not find favicon for URL %url in metatags, trying webroot.', array('%url' => $match[1])));
-    }
-    
-    // Verify if the favicon was returned
-    if (($data->code == '200' OR $data->redirect_code == '200') AND ($data->headers['Content-Length'] > 0 OR $data->headers['Content-length'] > 0)) {
-      //check for acceptable Content-Type
-      //TODO: refactor code
-      $content_type_1 = explode(';', $data->headers['Content-Type']);
-      $content_type_2 = explode(';', $data->headers['Content-Type']);
-      
-      if (in_array($content_type_1[0], $ui_ctype) OR in_array($content_type_2[0], $ui_ctype)) {
-        //save favicon to file
-        file_save_data($data->data, $dir .'/'. $domain .'.ico', FILE_EXISTS_REPLACE);
-      }
-    }
-  }
-  
-  // check for favicon availability
-  $favicon = file_exists($dir .'/'. $domain .'.ico') ? (file_create_url($dir .'/'. $domain .'.ico')) : (base_path().drupal_get_path('module', 'urlicon') .'/Icon_External_Link.png');
-
-  $link = theme('urlicon', array(
-    'text' => $match[3],
-    'favicon' => $favicon,
-    'path' => $match[1],
-    'attributes' => array('alt' => '', 'title' => t('favicon'), 'class' => array('urlicon', 'urlicon-'. check_plain($domain))),
-  ));
-  return $link;
-}
-
-/**
  * Implementation of hook_file_download().
  */
 function urlicon_file_download($filepath) {
@@ -231,50 +59,33 @@ function urlicon_file_download($filepath) {
 }
 
 /**
- * Settings form
- */
-function urlicon_settings($form, &$form_state, $filter, $format, $defaults) {
-  $format_id = $format->format;
-  $settings["urlicon"] = array(
-    '#type' => 'radios',
-    '#title' => t('Filter URLs'),
-    '#default_value' => isset($filter->settings['urlicon']) ? $filter->settings['urlicon'] : $defaults['urlicon'],
-    '#options' => array(
-      UI_FORMAT_FAVICON => t('Find all external URLs and append the according favicon (if available)'),
-      UI_FORMAT_ICON    => t('Find all external URLs and append an <em>external link icon</em>'),
-      UI_FORMAT_CLASS   => t('Find all external URLs and add a CSS class only (theme it as you like)'),
-    ),
-    '#description' => t('Choose what to add to a link in the markup.'),
-  );
-
-  return $settings;
-}
-
-/**
  * Implementation of hook_theme().
  */
 function urlicon_theme($existing, $type, $theme, $path) {
-  return array(
-    'urlicon' => array(
-      'arguments' => array(
+  return [
+    'urlicon' => [
+      'variables' => [
         'text' => NULL,
         'favicon' => NULL,
         'path' => NULL,
-        'attributes' => array(),
-      ),
-    ),
-  );
+        'attributes' => [],
+      ],
+    ],
+  ];
 }
 
 /**
  * Return a themed link with a favicon.
  */
 function theme_urlicon($variables) {
-  $hooks = theme_get_registry();
-  foreach ($hooks['urlicon']['arguments'] as $key => $default) {
-    $$key = $variables[$key];
-  }
-  $favicon = '<img src="'. $favicon .'" '. drupal_attributes($attributes) .' />';
-  $output = l($text .' '. $favicon, $path, array('absolute' => TRUE, 'html' => TRUE));
+  $text = $variables['text'];
+  $path = $variables['path'];
+  $favicon = $variables['favicon'];
+  $attributes = $variables['attributes'];
+
+  $attributes = new Attribute($attributes);
+  $attributes['src'] = $favicon;
+  $favicon = '<img' . (string) $attributes . '/>';
+  $output = l($text .' '. $favicon, $path, ['absolute' => TRUE, 'html' => TRUE]);
   return  $output;
 }
