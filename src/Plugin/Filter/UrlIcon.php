@@ -35,7 +35,7 @@ class UrlIcon extends FilterBase implements ContainerFactoryPluginInterface {
   /**
    * The http client.
    *
-   * @var \GuzzleHttp\Client
+   * @var \Guzzle\Http\Client
    */
   protected $client;
 
@@ -184,7 +184,7 @@ class UrlIcon extends FilterBase implements ContainerFactoryPluginInterface {
       else {
         // get favicon from webroot
         $result = $this->client->get($this->checkUrl('http://'. $url['host'] .'/favicon.ico'));
-        $this->logger->log('Could not find favicon for URL %url in metatags, trying webroot.', ['%url' => $match[1]]);
+        $this->logger->info('Could not find favicon for URL %url in metatags, trying webroot.', ['%url' => $match[1]]);
       }
 
       // Verify if the favicon was returned
