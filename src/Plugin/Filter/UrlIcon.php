@@ -170,6 +170,10 @@ class UrlIcon extends FilterBase implements ContainerFactoryPluginInterface {
 
           $result = $this->client->get($this->checkUrl($url['scheme'] .'://'. $url['host'] . $path . $icons[1]));
         }
+        // Protocol relative URLs.
+        else if (substr($icons[1], 0, 2) == '//') {
+          $result = $this->client->get($this->checkUrl($url['scheme'] . ':' . $icons[1]));
+        }
         else if (substr($icons[1], 0, 1) == '/') {
           // relative path
           $result = $this->client->get($this->checkUrl($url['scheme'] .'://'. $url['host'] . $icons[1]));
