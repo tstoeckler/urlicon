@@ -15,6 +15,7 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\filter\FilterProcessResult;
 use Drupal\filter\Plugin\FilterBase;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -168,31 +169,53 @@ class UrlIcon extends FilterBase implements ContainerFactoryPluginInterface {
             $i++;
           }
 
-          $result = $this->client->get($this->checkUrl($url['scheme'] .'://'. $url['host'] . $path . $icons[1]));
+          try {
+            $result = $this->client->get($this->checkUrl($url['scheme'] .'://'. $url['host'] . $path . $icons[1]));
+          }
+          catch (RequestException $e) {
+          }
         }
         // Protocol relative URLs.
         else if (substr($icons[1], 0, 2) == '//') {
-          $result = $this->client->get($this->checkUrl($url['scheme'] . ':' . $icons[1]));
+          try {
+            $result = $this->client->get($this->checkUrl($url['scheme'] . ':' . $icons[1]));
+          }
+          catch (RequestException $e) {
+          }
         }
         else if (substr($icons[1], 0, 1) == '/') {
           // relative path
-          $result = $this->client->get($this->checkUrl($url['scheme'] .'://'. $url['host'] . $icons[1]));
+          try {
+            $result = $this->client->get($this->checkUrl($url['scheme'] .'://'. $url['host'] . $icons[1]));
+          }
+          catch (RequestException $e) {
+          }
         }
         else {
           // get favicon from webroot
-          $result = $this->client->get($this->checkUrl('http://'. $url['host'] .'/favicon.ico'));
-          $this->logger->error('Could not find favicon for URL %url with shortcut url %shortcut, trying webroot.', ['%url' => $match[1], '%shortcut' => $icons[1]]);
+          try {
+            $this->logger->error('Could not find favicon for URL %url with shortcut url %shortcut, trying webroot.', ['%url' => $match[1], '%shortcut' => $icons[1]]);
+            $result = $this->client->get($this->checkUrl('http://'. $url['host'] .'/favicon.ico'));
+          }
+          catch (RequestException $e) {
+            $this->logger->info('Could not find favicon for URL %url in webroot.', ['%url' => $match[1]]);
+          }
         }
 
       }
       else {
         // get favicon from webroot
-        $result = $this->client->get($this->checkUrl('http://'. $url['host'] .'/favicon.ico'));
-        $this->logger->info('Could not find favicon for URL %url in metatags, trying webroot.', ['%url' => $match[1]]);
+        try {
+          $this->logger->info('Could not find favicon for URL %url in metatags, trying webroot.', ['%url' => $match[1]]);
+          $result = $this->client->get($this->checkUrl('http://'. $url['host'] .'/favicon.ico'));
+        }
+        catch (RequestException $e) {
+          $this->logger->info('Could not find favicon for URL %url in webroot.', ['%url' => $match[1]]);
+        }
       }
 
       // Verify if the favicon was returned
-      if (($result->getStatusCode() == 200) AND ($result->getHeader('Content-Length') > 0 OR $result->getHeader('Content-length') > 0)) {
+      if ($result && ($result->getStatusCode() == 200) AND ($result->getHeader('Content-Length') > 0 OR $result->getHeader('Content-length') > 0)) {
         //check for acceptable Content-Type
         //TODO: refactor code
         $content_type_1 = explode(';', $result->getHeader('Content-Type'));
