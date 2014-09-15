@@ -165,14 +165,18 @@ class UrlIcon extends FilterBase implements ContainerFactoryPluginInterface {
 
         if (strpos($icons[1], '://')) {
           // absolute path
-          $result = $this->client->get($this->checkUrl($icons[1]));
+          try {
+            $result = $this->client->get($this->checkUrl($icons[1]));
+          }
+          catch (RequestException $e) {
+          }
         }
         else if (substr($icons[1], 0, 3) == '../') {
           // relative path
           $path = '';
           $elements = explode('/', $url['path']);
           $i = 0;
-          while (!strpos($elements[$i], '.') AND $i <= count($elements)) {
+          while (isset($elements[$i]) && !strpos($elements[$i], '.') AND $i <= count($elements)) {
             $path .= $elements[$i] .'/';
             $i++;
           }
