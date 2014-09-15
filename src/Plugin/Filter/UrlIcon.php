@@ -151,7 +151,15 @@ class UrlIcon extends FilterBase implements ContainerFactoryPluginInterface {
 
       //check for favicon in metatags
       /** @var \Guzzle\Http\Message\Response $result */
-      $result = $this->client->get($match[1]);
+      try {
+        $result = $this->client->get($match[1]);
+      }
+      catch (RequestException $e) {
+        // Let's log it and return early in case the actual domain is not
+        // accessible itself.
+        $this->logger->info('Could not find URL %url.', ['%url' => $match[1]]);
+        return $match[1];
+      }
 
       if (preg_match('/<link[^>]+rel="(?:shortcut )?icon"[^>]+?href="([^"]+?)"/si', $result->getBody(), $icons)) {
 
