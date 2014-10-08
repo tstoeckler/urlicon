@@ -13,6 +13,7 @@
 
 // Path to directory where favicons are stored
 use Drupal\Core\Template\Attribute;
+use Drupal\Core\Url;
 
 define('UI_FILE_PATH', 'public://urlicon');
 define('UI_FORMAT_FAVICON', 0);
@@ -28,7 +29,7 @@ function urlicon_help($path, $arg) {
       $output = '<p>'. t('The URLIcon module automatically adds a CSS class to &lt;a&gt;-elements reflecting their target and fetches the favicon from the target site.') .'</p>';
       $output .= '<p>'. t('Use Input Formats to enable the URL filter') .'</p>';
       $output .= '<p>'. t('<ol><li>Select an existing Input Format or add a new one</li><li>Configure the Input Format</li><li>Enable URL class filter and Save configuration</li><li>Rearrange the weight of the URL filter depending on what filters exist in the format</li></ol>') .'</p>';
-      $output .= '<p>'. t('You can enable the urlfilter for an input format from <a href="%admin-filter">administer &gt;&gt; Site Configuration &gt;&gt; Input Filter</a>.', array('%admin-filter' => url('admin/config/content/formats'))) .'</p>';
+      $output .= '<p>'. t('You can enable the urlfilter for an input format from <a href="%admin-filter">administer &gt;&gt; Site Configuration &gt;&gt; Input Filter</a>.', array('%admin-filter' => \Drupal::url('filter.admin_overview'))) .'</p>';
       return $output;
     case 'admin/modules#description':
       return t('Automatically fetch favicons for URLs.');
@@ -86,6 +87,6 @@ function theme_urlicon($variables) {
   $attributes = new Attribute($attributes);
   $attributes['src'] = $favicon;
   $favicon = '<img' . (string) $attributes . '/>';
-  $output = l($text .' '. $favicon, $path, ['absolute' => TRUE, 'html' => TRUE]);
+  $output = \Drupal::l($text .' '. $favicon, Url::fromUri($path, ['absolute' => TRUE, 'html' => TRUE]));
   return  $output;
 }
