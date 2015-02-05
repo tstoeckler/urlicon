@@ -48,14 +48,15 @@ function urlicon_init() {
  */
 function urlicon_file_download($filepath) {
   // Check if the file is controlled by the current module.
+  // @todo This is not a particularly safe check.
   if (strpos($filepath, 'urlicon') !== FALSE) {
-    if (user_access('access content')) {
+    if (\Drupal::currentUser()->hasPermission('access content')) {
       // This is an assumption
       return array('Content-type: image/ico');
     }
-  }
-  else {
-    return -1;
+    else {
+      return -1;
+    }
   }
 }
 
