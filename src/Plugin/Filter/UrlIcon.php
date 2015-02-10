@@ -227,16 +227,26 @@ class UrlIcon extends FilterBase implements ContainerFactoryPluginInterface {
       }
 
       // Verify if the favicon was returned
-      if ($result && ($result->getStatusCode() == 200) AND ($result->getHeader('Content-Length') > 0 OR $result->getHeader('Content-length') > 0)) {
-        //check for acceptable Content-Type
-        //TODO: refactor code
-        $content_type_1 = explode(';', $result->getHeader('Content-Type'));
-        $content_type_2 = explode(';', $result->getHeader('Content-Type'));
+      // This is wrapped in a try-catch-block because $result->getStatusCode()
+      // can throw an exception via the following stack trace:
+      // 1. \GuzzleHttp\Message\FutureResponse::getStatusCode()
+      // 2. \GuzzleHttp\Ring\Future\MagicFutureTrait::__get()
+      // 3. \GuzzleHttp\Ring\Future\BaseFutureTrait::wait()
+      try {
+        if ($result && ($result->getStatusCode() == 200) AND ($result->getHeader('Content-Length') > 0 OR $result->getHeader('Content-length') > 0)) {
+          //check for acceptable Content-Type
+          //TODO: refactor code
+          $content_type_1 = explode(';', $result->getHeader('Content-Type'));
+          $content_type_2 = explode(';', $result->getHeader('Content-Type'));
 
-        if (in_array($content_type_1[0], $ui_ctype) OR in_array($content_type_2[0], $ui_ctype)) {
-          //save favicon to file
-          file_save_data($result->getBody(), $dir .'/'. $domain .'.ico', FILE_EXISTS_REPLACE);
+          if (in_array($content_type_1[0], $ui_ctype) OR in_array($content_type_2[0], $ui_ctype)) {
+            //save favicon to file
+            file_save_data($result->getBody(), $dir .'/'. $domain .'.ico', FILE_EXISTS_REPLACE);
+          }
         }
+      }
+      catch (RequestException $e) {
+        $this->logger->info('Could not find favicon for URL %url in webroot.', ['%url' => $match[1]]);
       }
     }
 
